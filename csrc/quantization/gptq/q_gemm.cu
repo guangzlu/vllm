@@ -58,7 +58,7 @@ __host__ __forceinline__ hipblasStatus_t __compat_hipblasHgemm(hipblasHandle_t  
 
 __forceinline__ __device__ half2 dot22_8(half2(&dq)[4], const half* a_ptr, const half2 g_result)
 {
-    half2 result = {};
+    half2 result;
     const half2* a2_ptr = (const half2*)a_ptr;
     #pragma unroll
     for (int i = 0; i < 4; i++) result = __hfma2(dq[i], *a2_ptr++, result);
@@ -67,7 +67,7 @@ __forceinline__ __device__ half2 dot22_8(half2(&dq)[4], const half* a_ptr, const
 
 __forceinline__ __device__ float dot22_8_f(half2(&dq)[4], const half* a_ptr)
 {
-    half2 result = {};
+    half2 result;
     const half2* a2_ptr = (const half2*)a_ptr;
     #pragma unroll
     for (int i = 0; i < 4; i++) result = __hfma2(dq[i], *a2_ptr++, result);
@@ -498,8 +498,8 @@ __global__ void gemm_half_q_half_alt_kernel(
     int k = 0;
     int z_w = w / 8;
     int z_mod = (w % 8) * 4;
-    half2 res2;
-    half res[BLOCK_M_SIZE_MAX] = {};
+    //half2 res2;
+    half res[BLOCK_M_SIZE_MAX];
 
     unsigned int tmp;
     while (k < h_end) {
@@ -520,12 +520,12 @@ __global__ void gemm_half_q_half_alt_kernel(
             zeros_tmp[tmp_k] = zero;
         }
         for (int m = 0; m < b_end; m++) {
-            res2 = {};
+            half2 res2;
             res2 = __hfma2(__hfma2(deq2[(tmp >>  0) & 0xff][off], scales_tmp[0], zeros_tmp[0]), blockvec[m][k + 0], res2);
             res2 = __hfma2(__hfma2(deq2[(tmp >>  8) & 0xff][off], scales_tmp[1], zeros_tmp[1]), blockvec[m][k + 1], res2);
             res2 = __hfma2(__hfma2(deq2[(tmp >> 16) & 0xff][off], scales_tmp[2], zeros_tmp[2]), blockvec[m][k + 2], res2);
             res2 = __hfma2(__hfma2(deq2[(tmp >> 24) & 0xff][off], scales_tmp[3], zeros_tmp[3]), blockvec[m][k + 3], res2);
-            res[m] = __hadd(res[m], __hadd(res2.x, res2.y));
+            res[m] = __hadd(res[m], __hadd(__short2half_rn(res2.x), __short2half_rn(res2.y)));
         }
         i += width;
         k += 4;
