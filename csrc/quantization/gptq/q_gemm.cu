@@ -525,7 +525,7 @@ __global__ void gemm_half_q_half_alt_kernel(
             res2 = __hfma2(__hfma2(deq2[(tmp >>  8) & 0xff][off], scales_tmp[1], zeros_tmp[1]), blockvec[m][k + 1], res2);
             res2 = __hfma2(__hfma2(deq2[(tmp >> 16) & 0xff][off], scales_tmp[2], zeros_tmp[2]), blockvec[m][k + 2], res2);
             res2 = __hfma2(__hfma2(deq2[(tmp >> 24) & 0xff][off], scales_tmp[3], zeros_tmp[3]), blockvec[m][k + 3], res2);
-            res[m] = __hadd(res[m], __hadd(__short2half_rn(res2.x), __short2half_rn(res2.y)));
+            res[m] = __hadd(res[m], __hadd((res2.x), (res2.y)));
         }
         i += width;
         k += 4;
